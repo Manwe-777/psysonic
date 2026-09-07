@@ -94,7 +94,11 @@ export function resolveDesktopPalette(palette: DesktopPalette) {
   // Text tones, brightest to dimmest.
   const text = fg;
   const subtext1 = hex('dark_foreground', 'subtext1') ?? mix(fg, bg, 0.2);
-  const subtext0 = hex('muted', 'subtext0') ?? mix(fg, bg, 0.35);
+  // 0.30 rather than a dimmer mix: this becomes `--text-muted`, and on a light
+  // palette 0.35 lands at 3.98:1 against the background — under the 4.5:1 the
+  // shipped themes hold to. 0.30 measures 4.56:1 there and leaves dark palettes
+  // brighter than before (5.57:1 → 6.24:1), so nothing regresses.
+  const subtext0 = hex('muted', 'subtext0') ?? mix(fg, bg, 0.3);
   const overlay2 = hex('overlay2') ?? mix(fg, bg, 0.5);
   const overlay1 = hex('overlay1') ?? mix(fg, bg, 0.62);
   const overlay0 = hex('overlay0') ?? mix(fg, bg, 0.72);

@@ -168,3 +168,51 @@ describe('desktopPaletteCss', () => {
     expect(css.match(/\{/g)).toHaveLength(1);
   });
 });
+
+describe('derived text stays readable', () => {
+  /** WCAG 2.1 relative luminance. */
+  function luminance(hex: string): number {
+    const h = hex.slice(1);
+    const channels = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+    const linear = channels.map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  }
+
+  function contrast(a: string, b: string): number {
+    const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (high + 0.05) / (low + 0.05);
+  }
+
+  /**
+   * `subtext0` becomes `--text-muted`, and unlike every other token here it is
+   * derived rather than named by most palettes. A dimmer mix factor reads fine
+   * on a dark palette and fails on a light one, which is how it shipped at 0.35
+   * (3.98:1). The light case is the one that pins the factor — without it a
+   * later tweak looks safe against the dark palettes alone.
+   */
+  it.each([
+    ['dark', minimal],
+    [
+      'light',
+      {
+        source: '/tmp/light.toml',
+        name: null,
+        mode: 'light',
+        colors: { background: '#fdf6e3', foreground: '#3a3730', accent: '#1f7a4d' },
+      } satisfies DesktopPalette,
+    ],
+  ])('keeps derived muted text at 4.5:1 on a %s palette', (_label, palette) => {
+    const { ctp } = resolveDesktopPalette(palette);
+
+    expect(contrast(ctp.subtext0, ctp.base)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('keeps text on an accent-filled surface readable for a pale accent', () => {
+    const { ctp, textOnAccent } = resolveDesktopPalette({
+      ...minimal,
+      colors: { ...minimal.colors, accent: '#f5e6a8' },
+    });
+
+    expect(contrast(textOnAccent, ctp.mauve)).toBeGreaterThanOrEqual(4.5);
+  });
+});
