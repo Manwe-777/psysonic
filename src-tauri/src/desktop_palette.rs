@@ -129,6 +129,13 @@ fn normalize_color(value: &str) -> Option<String> {
 /// `name = "…"` key takes precedence and never reaches this.
 fn read_theme_name(palette: &Path) -> Option<String> {
     let sibling = palette.parent()?.parent()?.join("theme.name");
+    // Size-check before reading, the same way the palette file itself is
+    // capped: `PSYSONIC_PALETTE_FILE` can point anywhere, so whatever sits
+    // beside it is untrusted too. The bound is generous — a trailing newline
+    // and CRLF still have to fit under it.
+    if std::fs::metadata(&sibling).ok()?.len() > (MAX_NAME_BYTES + 2) as u64 {
+        return None;
+    }
     let raw = std::fs::read_to_string(sibling).ok()?;
     let name = raw.trim();
     (!name.is_empty() && name.len() <= MAX_NAME_BYTES).then(|| name.to_string())
@@ -297,6 +304,21 @@ BRIGHT_RED = "#ff6b6b"
             read_palette_at(&path).unwrap().unwrap().name.as_deref(),
             Some("Example Theme")
         );
+    }
+
+    #[test]
+    fn an_oversized_sibling_name_file_is_ignored() {
+        let root = tmpdir("huge-name");
+        let theme = root.join("theme");
+        std::fs::create_dir_all(&theme).unwrap();
+        // Well past the cap, so the size check rejects it before the read
+        // rather than the length check rejecting the string afterwards. Both
+        // end at `None`, so this pins the behaviour; the guard's actual point
+        // is not pulling an arbitrarily large file into memory first.
+        std::fs::write(root.join("theme.name"), "n".repeat(8 * 1024)).unwrap();
+        let path = write(&theme, "colors.toml", SAMPLE);
+
+        assert_eq!(read_palette_at(&path).unwrap().unwrap().name, None);
     }
 
     #[test]
