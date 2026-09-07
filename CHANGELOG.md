@@ -35,15 +35,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * On Windows the update dialog now installs the new version itself, the way it already does on macOS: the installer is downloaded, its signature is checked against the key built into the app, and it runs in the background. Psysonic closes and reopens by itself when it is done.
 * Until now Windows only offered the installer as a download to run by hand. Installs of this version and later update in place; an older install still downloads the next installer once.
 
+### Rate the current track with a global shortcut
+
+**By [@cucadmuh](https://github.com/cucadmuh), PR [#1503](https://github.com/Psysonic/psysonic/pull/1503)**
+
+* Settings → Input → Global shortcuts now offers separate, unbound actions for assigning 1–5 stars to the current track, even while Psysonic is out of focus.
+
 ### Psysonic follows your desktop's theme
 
 **By [@Manwe-777](https://github.com/Manwe-777), PR [#1507](https://github.com/Psysonic/psysonic/pull/1507)**
 
-* On a Linux desktop that publishes its colours — Omarchy does out of the box — Psysonic now themes itself to match, and re-themes itself within a couple of seconds when you switch your desktop theme. No restart, and nothing to keep in sync by hand.
-* The generated theme appears in Settings → Themes as `Desktop — <your theme's name>`, alongside a **Follow desktop theme** switch. Turn it off and the theme stays there as an ordinary one you can pick; pick a different theme by hand and following turns itself off, so your choice sticks.
-* Any other desktop works too: point `PSYSONIC_PALETTE_FILE` at a file of `name = "#rrggbb"` lines and Psysonic follows that instead. A palette naming only a background, a foreground and an accent is enough — the rest of the theme is derived from those three.
-* If you already had a theme selected, Psysonic keeps it. Following starts switched off for existing installs, so an update never replaces the theme you chose; turn it on when you want it.
-* Desktops that publish no palette — every non-Linux install, and most Linux ones — see no change at all, not even the new switch.
+* On a Linux desktop that publishes its colours — Omarchy does out of the box — Psysonic now themes itself to match, and re-themes itself within a couple of seconds when you switch your desktop theme. No restart, nothing to keep in sync by hand.
+* The generated theme appears in Settings → Themes as `Desktop — <your theme's name>`, next to a **Follow desktop theme** switch. Existing installs keep the theme they already had and start with the switch off; picking any other theme by hand also turns following off, so your choice sticks.
+* Any other desktop works too: point `PSYSONIC_PALETTE_FILE` at a file of `name = "#rrggbb"` lines. Naming only a background, a foreground and an accent is enough — the rest of the theme is derived from those three.
 
 ## Fixed
 
@@ -59,6 +63,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **By [@Psychotoxical](https://github.com/Psychotoxical), PR [#1488](https://github.com/Psysonic/psysonic/pull/1488)**
 
 * In languages with long button labels, such as German, the "Install now" button of the update dialog ran past the right edge of the dialog. The dialog is wider now, and should the labels still not fit side by side, the buttons move to a second row instead of being cut off.
+
+### Navidrome libraries get their ISRC and MusicBrainz ids back, and analysis no longer fails on a stray server key
+
+**By [@Psychotoxical](https://github.com/Psychotoxical), PR [#1490](https://github.com/Psysonic/psysonic/pull/1490)**
+
+* Libraries indexed from Navidrome's native API kept the ISRC and MusicBrainz recording id of every track out of the local index, because the importer looked for field names Navidrome does not send. Both are read under their real names now, and a one-time background pass fills them in for existing libraries and links the tracks that were never linked, in small batches while Psysonic is idle.
+* Since 1.51.0 the audio analysis could write its results under a server key the library index did not know, and every attempt then failed with a foreign-key error in the log. An unresolved generated server-profile id is now rejected at the analysis boundary, so analysis is skipped for that track instead of failing without rejecting valid keys used by other storage features.
 
 ### Library rebuilds remove tracks deleted from Navidrome again
 
@@ -77,6 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **By [@cucadmuh](https://github.com/cucadmuh), reported by MrMiniblock on Discord, PR [#1499](https://github.com/Psysonic/psysonic/pull/1499)**
 
 * Opening an album or artist from a long playlist and then going back now restores the previous scroll position instead of returning to the top.
+
+### Unfocused visualizers stop drawing in the background
+
+**By [@cucadmuh](https://github.com/cucadmuh), reported by [@netherguy4](https://github.com/netherguy4), PR [#1505](https://github.com/Psysonic/psysonic/pull/1505)**
+
+* Switching to another application no longer leaves the Now Playing visualizer consuming rendering time in the background. It pauses by default and resumes when Psysonic regains focus.
+* The behaviour can be changed under **Settings → Appearance → Visualizer**. Waveform progress continues to update while the window is unfocused.
 
 ## [1.52.0]
 

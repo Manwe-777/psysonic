@@ -614,6 +614,7 @@ export const settings = {
   shortcutOpenNowPlaying: 'Deschide "Now Playing"',
   shortcutShowLyrics: 'Arată Versurile',
   shortcutFavoriteCurrentTrack: 'Adaugă piesa curentă la favorite',
+  shortcutRateCurrentTrack: 'Evaluează piesa curentă: {{rating}}★',
   shortcutOpenHelp: 'Ajutor',
   playbackTitle: 'Redare',
   replayGain: 'Replay Gain',
